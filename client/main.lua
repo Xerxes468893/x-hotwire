@@ -16,7 +16,7 @@ I still am working on it for esx cops and stuff
 ESX = nil
 myKeys = {}
 latestveh = nil
-xerxesfactor = 0
+factor = 0
 local searchedVehs = {}
 local hotwiredVehs = {}
 local fuckingRETARDED = false
@@ -53,26 +53,84 @@ end)
 
 
 RegisterCommand("givekeys", function(source,args,raw)
-    arg = args[1]
-    vehicle = VehicleInFront()
-    plate = GetVehicleNumberPlateText(vehicle)
-    if GetVehiclePedIsIn(ped, false) == 0 and DoesEntityExist(vehicle) and IsEntityAVehicle(vehicle) then
-        local t, distance = GetClosestPlayer()
-        if (distance ~= -1 and distance < 3) then
-            if plate ~= nil then 
-                TriggerServerEvent("ARPF:GiveKeys", GetPlayerServerId(t),vehicle,plate)
-                exports['mythic_notify']:SendAlert('success', 'You gave your keys to'.. GetPlayerName(GetPlayerServerId(t)), 5000)
-            else
-                exports['mythic_notify']:SendAlert('error', 'You were unable to pass keys because the cars plate # was unable to be found ¯\\_(ツ)_/¯', 5000)
-            end
-        else
-            exports['mythic_notify']:SendAlert('error', 'No one near you to give your keys to have them get closer', 5000)
-        end
+  arg = args[1]
+  vehicle = VehicleInFront()
+  plate = GetVehicleNumberPlateText(vehicle)
+  ped = GetPlayerPed(-1)
+  if GetVehiclePedIsIn(ped, false) == 0 and DoesEntityExist(vehicle) and IsEntityAVehicle(vehicle) then
+    local t, distance = GetClosestPlayer()
+    if (distance ~= -1 and distance < 3) then
+      if plate ~= nil then 
+        TriggerServerEvent("ARPF:GiveKeys", GetPlayerServerId(t),vehicle,plate)
+        exports['mythic_notify']:SendAlert('success', 'You gave your keys to'.. GetPlayerName(GetPlayerServerId(t)), 5000)
+      else
+        exports['mythic_notify']:SendAlert('error', 'You were unable to pass keys because the cars plate # was unable to be found ¯\\_(ツ)_/¯', 5000)
+      end
     else
-        exports['mythic_notify']:SendAlert('error', 'You need to be outside looking at your car to give your keys', 6000)
+      exports['mythic_notify']:SendAlert('error', 'No one near you to give your keys to have them get closer', 5000)
     end
+  elseif IsPedInAnyVehicle(ped, false) then
+    veh = GetVehiclePedIsIn(ped, false)
+    plate = GetVehicleNumberPlateText(veh) 
+    local t, distance = GetClosestPlayer()
+    if (distance ~= -1 and distance < 3) then
+      if plate ~= nil then 
+        TriggerServerEvent("ARPF:GiveKeys", GetPlayerServerId(t),veh,plate)
+        exports['mythic_notify']:SendAlert('success', 'You gave your keys to'.. GetPlayerName(GetPlayerServerId(t)), 5000)
+      else
+        exports['mythic_notify']:SendAlert('error', 'You were unable to pass keys because the cars plate # was unable to be found ¯\\_(ツ)_/¯', 5000)
+      end
+    else
+      exports['mythic_notify']:SendAlert('error', 'No one near you to give your keys to have them get closer', 5000)
+    end
+  else
+  exports['mythic_notify']:SendAlert('error', 'You need to be outside looking at your car to give your keys OR be sitting in the car', 6000)
+  end
 end, false)
- 
+
+-- Shows a notification on the player's screen 
+--[[function ShowNotification( text )
+    SetNotificationTextEntry("STRING")
+    AddTextComponentSubstringPlayerName(text)
+    DrawNotification(false, false)
+end
+
+RegisterCommand('car2', function(source, args, rawCommand) -- use this as an example for spawning cars out of this script 
+    local x,y,z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0, 8.0, 0.5))
+    local veh = args[1]
+    if veh == nil then veh = "adder" end
+    vehiclehash = GetHashKey(veh)
+    RequestModel(vehiclehash)
+    
+    Citizen.CreateThread(function() 
+        local waiting = 0
+        while not HasModelLoaded(vehiclehash) do
+            waiting = waiting + 100
+            Citizen.Wait(100)
+            if waiting > 5000 then
+                ShowNotification("~r~Could not load the vehicle model in time, a crash was prevented.")
+                break
+            end
+        end
+
+        veh = CreateVehicle(vehiclehash, x, y, z, GetEntityHeading(PlayerPedId())+90, 1, 0)
+        plate = GetVehicleNumberPlateText(veh)
+        TrackVehicle(plate, veh)
+        TaskEnterVehicle(GetPlayerPed(-1), veh, 100, -1, 2, 16, 0)
+        TriggerEvent("ARPF:spawn:recivekeys", veh,plate)
+    end)
+end)]]
+
+RegisterNetEvent('ARPF:spawn:recivekeys')
+AddEventHandler('ARPF:spawn:recivekeys', function(vehicle,plate)
+  ped = GetPlayerPed(-1)
+  if vehicle ~= nil or plate ~= nil then 
+    vehicle = GetVehiclePedIsIn(ped, false)
+  end
+  TrackVehicle(plate, vehicle)
+  trackedVehicles[plate].canTurnOver = true
+end)
+
 RegisterNetEvent('ARPF:recivekeys')
 AddEventHandler('ARPF:recivekeys', function(name,vehicle,plates)
     ped = GetPlayerPed(-1)
@@ -461,13 +519,15 @@ Citizen.CreateThread(function()
 end)
 
 
+
+-- bits of dead npc codetaken from rob npc script on the fivem forums 
 domsgnow = 0
 Citizen.CreateThread( function()
     while true do
         Citizen.Wait(1)
-        local doingsomething = false
+        local robbing = false
         if GetVehiclePedIsTryingToEnter(GetPlayerPed(-1)) ~= nil and GetVehiclePedIsTryingToEnter(GetPlayerPed(-1)) ~= 0 then
-          doingsomething = true
+          robbing = true
           local curveh = GetVehiclePedIsTryingToEnter(GetPlayerPed(-1))
           local plate = GetVehicleNumberPlateText(curveh)
           TrackVehicle(plate,curveh)
@@ -480,7 +540,6 @@ Citizen.CreateThread( function()
                 Citizen.Wait(5000)
                 trackedVehicles[plate].canTurnOver = true
               else
-
                 if GetEntityModel(curveh) ~= GetHashKey("taxi") then
                   
                     if math.random(100) > 95 then
@@ -488,7 +547,6 @@ Citizen.CreateThread( function()
                       exports['progressBars']:startUI(5000,"Taking Keys") 
                       Citizen.Wait(5000)    
                         trackedVehicles[plate].canTurnOver = true
-
                     else
                         SetVehicleDoorsLocked(curveh, 2)
                         Citizen.Wait(1000)
@@ -500,9 +558,7 @@ Citizen.CreateThread( function()
                         Citizen.Wait(2000)
                         disableF = false
                   end
-                  
                 else
-                  --TriggerEvent("startAITaxi",true)
                   SetPedIntoVehicle(GetPlayerPed(-1), curveh, 2)
                   SetPedIntoVehicle(GetPlayerPed(-1), curveh, 1)
                 end
@@ -511,20 +567,16 @@ Citizen.CreateThread( function()
           end
         end
         if IsPedJacking(GetPlayerPed(-1)) then
-          doingsomething = true
+          robbing = true
             local veh = GetVehiclePedIsUsing(GetPlayerPed(-1))
             local plate = GetVehicleNumberPlateText(veh)
             local stayhere = true
-
            while stayhere do
-
                 local inCar = IsPedInAnyVehicle(GetPlayerPed(-1), false)
                 if not inCar then
                     stayhere = false
                 end
-
                 if IsVehicleEngineOn(veh) and trackedVehicles[plate].canTurnOver == false then
-                    TriggerEvent("keys:shutoffengine")
                     stayhere = false
                 end
                 Citizen.Wait(1)
@@ -533,89 +585,11 @@ Citizen.CreateThread( function()
         if domsgnow > 0 then
           domsgnow = domsgnow - 1
         end
-        if not doingsomething then
+        if not robbing then
           Wait(100)
         end
     end
 end)
-
-RegisterNetEvent('keys:shutoffengine')
-AddEventHandler('keys:shutoffengine', function()
-
-  xerxesfactor = 1000
-  if runningshutoff then
-    return
-  end
-  runningshutoff = true
-    while xerxesfactor > 0 do
-      local veh = GetVehiclePedIsUsing(GetPlayerPed(-1))
-       Citizen.Wait(1)
-       SetVehicleEngineOn(veh,0,1,1)
-      xerxesfactor = xerxesfactor - 1  
-   end
-
-   xerxesfactor = 0
-   runningshutoff = false
-end)
-
-local bypass = false
-local enforce = 0
-local dele = 0
-
-local function runningTick()
-  local playerPed = GetPlayerPed(-1)
-  local playerVehicle = GetVehiclePedIsUsing(playerPed)
-  local isPlayerDriving = GetPedInVehicleSeat(playerVehicle, -1) == playerPed
-  local plate = GetVehicleNumberPlateText(playerVehicle)
-
-  if IsPedGettingIntoAVehicle(playerPed) then return 0 end
-
-  if playerVehicle and isPlayerDriving then
-
-    if IsControlJustReleased(1,96) and not IsThisModelAHeli(GetEntityModel(playerVehicle)) then
-        TriggerEvent("car:engine")
-    end
-    
-    CanShuffleSeat(playerPed, false)
-    if (IsControlPressed(2, 75) or bypass) and IsVehicleDriveable(playerVehicle) then
-      if enforce < 10 and trackedVehicles[plate].canTurnOver == true then
-        bypass = true
-        SetVehicleEngineOn(playerVehicle, true, true)
-        enforce = enforce + 1
-        return 0
-      end   
-
-      if dele < 200 then
-        dele = dele + 1
-        return 0
-      end
-
-      if IsControlPressed(2, 75) and trackedVehicles[plate].canTurnOver == true then
-        SetVehicleEngineOn(playerVehicle, false, true)
-      elseif IsVehicleDriveable(playerVehicle) then
-        SetVehicleEngineOn(playerVehicle, true, true)
-      end
-
-      bypass = false
-      dele = 0
-      enforce = 0
-    end
-  else
-    bypass = false
-    dele = 0
-    enforce = 0
-    Wait(100)
-  end
-end
-
-Citizen.CreateThread(function()
-  while true do
-    Citizen.Wait(1)
-    runningTick()
-  end
-end)
-
-
 
 RegisterNetEvent('animation:repaircar')
 AddEventHandler('animation:repaircar', function(secounts)
@@ -665,7 +639,8 @@ function DrawText3Ds(x,y,z, text)
     DrawText(_x,_y)
     local factor = (string.len(text)) / 370
     DrawRect(_x,_y+0.0125, 0.015+ factor, 0.03, 41, 11, 41, 68)
-  end
+end
+
 RegisterNetEvent('animation:lockpickinvtestoutside')
 AddEventHandler('animation:lockpickinvtestoutside', function()
     local lPed = GetPlayerPed(-1)
@@ -703,104 +678,6 @@ Citizen.CreateThread(function()
     end
 end)
 
-function GetClosestVehiclesa(coords)
-  local vehicles        = GetVehiclese()
-  local closestDistance = -1
-  local closestVehicle  = -1
-  local coords          = coords
-
-  if coords == nil then
-    local playerPed = PlayerPedId()
-    coords          = GetEntityCoords(playerPed)
-  end
-
-  for i=1, #vehicles, 1 do
-    local vehicleCoords = GetEntityCoords(vehicles[i])
-    local distance      = GetDistanceBetweenCoords(vehicleCoords, coords.x, coords.y, coords.z, true)
-
-    if closestDistance == -1 or closestDistance > distance then
-      closestVehicle  = vehicles[i]
-      closestDistance = distance
-    end
-  end
-
-  return closestVehicle, closestDistance
-end
-
-function GetClosestNPC()
-    local playerped = GetPlayerPed(-1)
-    local playerCoords = GetEntityCoords(playerped)
-    local handle, ped = FindFirstPed()
-    local success
-    local rped = nil
-    local distanceFrom
-    repeat 
-        local pos = GetEntityCoords(ped)
-        local distance = GetDistanceBetweenCoords(playerCoords, pos, true)
-        if canPedBeUsed(ped) and distance < 5.0 and (distanceFrom == nil or distance < distanceFrom) then
-            distanceFrom = distance
-            rped = ped
-            pedsused["conf"..rped] = true
-        end
-        success, ped = FindNextPed(handle)
-    until not success
-    EndFindPed(handle)
-    return rped
-end
-
-function getNPC()
- local playerCoords = GetEntityCoords(GetPlayerPed(-1))
- local handle, ped = FindFirstPed()
- local success
- local rped = nil
- local distanceFrom
- repeat
-  local pos = GetEntityCoords(ped)
-  local distance = GetDistanceBetweenCoords(playerCoords, pos, true)
-  if canPedBeUsed(ped) and distance < 3.0 and (distanceFrom == nil or distance < distanceFrom) then
-   distanceFrom = distance
-   rped = ped
-   SetEntityAsMissionEntity(rped, true, true)
-  end
-  success, ped = FindNextPed(handle)
-  until not success
-  EndFindPed(handle)
- return rped
-end
-
-function canPedBeUsed(ped)
- if ped == nil then return false end
- if ped == GetPlayerPed(-1) then return false end
- if not DoesEntityExist(ped) then return false end
- --if not IsPedOnFoot(ped) then return false end
- --if IsEntityDead(ped) then return false end
- if not IsPedHuman(ped) then return false end
- return true
-end
-
-
-function IsPedNearCoords(x,y,z)
-    print("ped wr?")
-    local handle, ped = FindFirstPed()
-    local pedfound = false
-    local success
-    repeat
-        local pos = GetEntityCoords(ped)
-        local distance = GetDistanceBetweenCoords(x,y,z, pos, true)
-
-        if distance < 5.0 then
-          pedfound = true
-        end
-        success, ped = FindNextPed(handle)
-    until not success
-    EndFindPed(handle)
-    if pedfound then
-      print("got one")
-    else
-      print("nup brah")
-    end
-    return pedfound
-end
 
 function TrackVehicle(plate, vehicle)
     if trackedVehicles[plate] == nil then
@@ -882,51 +759,25 @@ function GetPlayers()
 
     return players
 end
-function GetClosestPlayerNotInCar()
-    local players = GetPlayers()
-    local closestDistance = -1
-    local closestPlayer = -1
-    local ply = GetPlayerPed(-1)
-    local plyCoords = GetEntityCoords(ply, 0)
-    --if not IsPedInAnyVehicle(GetPlayerPed(-1), false) then
-        for index,value in ipairs(players) do
-          local target = GetPlayerPed(value)
-            if(target ~= ply) then
-                local targetCoords = GetEntityCoords(GetPlayerPed(value), 0)
-                local distance = GetDistanceBetweenCoords(targetCoords["x"], targetCoords["y"], targetCoords["z"], plyCoords["x"], plyCoords["y"], plyCoords["z"], true)
-                if(closestDistance == -1 or closestDistance > distance) and not IsPedInAnyVehicle(target, false) then
-                    closestPlayer = value
-                    closestDistance = distance
-                end
-            end
-        end
-        return closestPlayer, closestDistance
-    --else
-        --TriggerEvent("DoShortHudText","Inside Vehicle.",2)
-    --end
-end
 
-function GetClosestPlayerNotInCar()
+function GetClosestPlayer()
   local players = GetPlayers()
   local closestDistance = -1
   local closestPlayer = -1
   local ply = GetPlayerPed(-1)
   local plyCoords = GetEntityCoords(ply, 0)
-  if not IsPedInAnyVehicle(GetPlayerPed(-1), false) then
-    for index,value in ipairs(players) do
-      local target = GetPlayerPed(value)
-      if(target ~= ply) then
-        local targetCoords = GetEntityCoords(GetPlayerPed(value), 0)
-        local distance = GetDistanceBetweenCoords(targetCoords["x"], targetCoords["y"], targetCoords["z"], plyCoords["x"], plyCoords["y"], plyCoords["z"], true)
-        if(closestDistance == -1 or closestDistance > distance) and not IsPedInAnyVehicle(target, false) then
-          closestPlayer = value
-          closestDistance = distance
-        end
+  
+  for index,value in ipairs(players) do
+    local target = GetPlayerPed(value)
+    if(target ~= ply) then
+      local targetCoords = GetEntityCoords(GetPlayerPed(value), 0)
+      local distance = GetDistanceBetweenCoords(targetCoords["x"], targetCoords["y"], targetCoords["z"], plyCoords["x"], plyCoords["y"], plyCoords["z"], true)
+      if(closestDistance == -1 or closestDistance > distance) then
+        closestPlayer = value
+        closestDistance = distance
       end
     end
-    return closestPlayer, closestDistance
-  else
-    --TriggerEvent("DoShortHudText","Inside Vehicle.",2)
   end
-
+  
+  return closestPlayer, closestDistance
 end
