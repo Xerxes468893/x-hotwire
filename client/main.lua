@@ -1,4 +1,4 @@
--- Base from Disxworldza edited by xerxes468893#0001 
+-- Base from DiscworldZA edited by xerxes468893#0001 
 --[[
 change log
 
