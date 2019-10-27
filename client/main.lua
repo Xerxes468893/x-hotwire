@@ -19,9 +19,7 @@ latestveh = nil
 factor = 0
 local searchedVehs = {}
 local hotwiredVehs = {}
-local fuckingRETARDED = false
 local isActive = false
-pBreaking = false
 local haskeys = {}
 local Time = 10 * 1000 -- Time for each stage (ms)
 local animDict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@"
@@ -95,7 +93,7 @@ end, false)
     DrawNotification(false, false)
 end
 
-RegisterCommand('car2', function(source, args, rawCommand) -- use this as an example for spawning cars out of this script 
+RegisterCommand('car2', function(source, args, rawCommand) -- use this as an example for spawning cars out of this script
     local x,y,z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0, 8.0, 0.5))
     local veh = args[1]
     if veh == nil then veh = "adder" end
@@ -169,7 +167,7 @@ end)
     --local vehicle = VehicleInFront()
     --SetVehicleDoorsLocked(vehicle, 2)
     TriggerEvent("disc-hotwire:hotwire", true)
-end, false)]]
+end, false)]] -- test for lockpick as an item 
 
 RegisterNetEvent('disc-hotwire:hotwire')
 AddEventHandler('disc-hotwire:hotwire', function(useditem)
@@ -202,20 +200,6 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         isActive = true
         chance = math.random(1,7)
         time = 10000
-        --[[stress = exports['ARPF-Base_esx']:getStressLevel()
-        print("pass 1 5.5")
-        curstresslevel = math.ceil(stress / 100)
-        time = 10000
-        if curstresslevel >= 20 then 
-            time = 14000
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
-        elseif curstresslevel >= 45 then 
-            time = 18000
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
-        elseif curstresslevel >= 75 then 
-            time = 22000
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
-        end]] -- this is for my stress system if you have one use it here 
         print("pass 1 6")
         exports['progressBars']:startUI(time, "Lockpicking Car Door")
         lockpicking = true
@@ -296,7 +280,7 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         end]]
         print("pass 2 7")
         isActive = true
-		TriggerEvent("animation:repaircar", time)
+        TriggerEvent("animation:repaircar", time)
         exports['progressBars']:startUI(time, "Modifying Ignition Stage 1")
         Citizen.Wait(time)
         Citizen.Wait(500)
@@ -428,7 +412,7 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
     end
 end)
 
-function shutoffenginesearch()
+function searchvehicle()
      local veh = GetVehiclePedIsUsing(GetPlayerPed(-1))
      plate = GetVehicleNumberPlateText(veh)
     if  trackedVehicles[plate].canTurnOver == false then
@@ -509,7 +493,7 @@ Citizen.CreateThread(function()
                 TriggerEvent("disc-hotwire:hotwire", useds)
             end
             if IsControlJustPressed(0, 20) and not hassearched[plate] == true then 
-                shutoffenginesearch()
+                searchvehicle()
             else
 
             end
@@ -518,10 +502,6 @@ Citizen.CreateThread(function()
   end
 end)
 
-
-
--- bits of dead npc codetaken from rob npc script on the fivem forums 
-domsgnow = 0
 Citizen.CreateThread( function()
     while true do
         Citizen.Wait(1)
@@ -535,17 +515,17 @@ Citizen.CreateThread( function()
             local pedDriver = GetPedInVehicleSeat(curveh, -1)
             if pedDriver ~= 0 and (not IsPedAPlayer(pedDriver) or IsEntityDead(pedDriver)) then
               if IsEntityDead(pedDriver) then
-                -- alert 
-                exports['progressBars']:startUI(5000,"Taking Keys")
-                Citizen.Wait(5000)
-                trackedVehicles[plate].canTurnOver = true
+                    -- add your alert
+                    exports['progressBars']:startUI(5000,"Taking Keys")
+                    Citizen.Wait(5000)
+                    trackedVehicles[plate].canTurnOver = true
               else
                 if GetEntityModel(curveh) ~= GetHashKey("taxi") then
                   
                     if math.random(100) > 95 then
-                        -- alert
-                      exports['progressBars']:startUI(5000,"Taking Keys") 
-                      Citizen.Wait(5000)    
+                        -- add your alert
+                        exports['progressBars']:startUI(5000,"Taking Keys") 
+                        Citizen.Wait(5000)    
                         trackedVehicles[plate].canTurnOver = true
                     else
                         SetVehicleDoorsLocked(curveh, 2)
@@ -554,36 +534,15 @@ Citizen.CreateThread( function()
                         TaskReactAndFleePed(pedDriver, GetPlayerPed(-1))
                         SetPedKeepTask(pedDriver, true)
                         ClearPedTasksImmediately(GetPlayerPed(-1))
-                        disableF = true
                         Citizen.Wait(2000)
-                        disableF = false
                   end
                 else
-                  SetPedIntoVehicle(GetPlayerPed(-1), curveh, 2)
-                  SetPedIntoVehicle(GetPlayerPed(-1), curveh, 1)
+                  SetPedIntoVehicle(GetPlayerPed(-1), curveh, 2) -- if taxi get into back seat 
+                  SetPedIntoVehicle(GetPlayerPed(-1), curveh, 1) -- if taxi get into back seat 
                 end
               end
             end
           end
-        end
-        if IsPedJacking(GetPlayerPed(-1)) then
-          robbing = true
-            local veh = GetVehiclePedIsUsing(GetPlayerPed(-1))
-            local plate = GetVehicleNumberPlateText(veh)
-            local stayhere = true
-           while stayhere do
-                local inCar = IsPedInAnyVehicle(GetPlayerPed(-1), false)
-                if not inCar then
-                    stayhere = false
-                end
-                if IsVehicleEngineOn(veh) and trackedVehicles[plate].canTurnOver == false then
-                    stayhere = false
-                end
-                Citizen.Wait(1)
-            end
-        end   
-        if domsgnow > 0 then
-          domsgnow = domsgnow - 1
         end
         if not robbing then
           Wait(100)
