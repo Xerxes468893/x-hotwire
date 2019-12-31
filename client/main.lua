@@ -208,10 +208,10 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         print("pass 1 8")
         SetVehicleDoorsShut(vehicle, true)
             Citizen.Wait(time)
-            exports['mythic_notify']:DoHudText('success', 'Doors Unlocked!')
+            exports['mythic_notify']:SendAlert('success', 'Doors Unlocked!')
             if chance == 2 then 
                 TriggerServerEvent('ARPF:removeKit')
-                exports['mythic_notify']:DoHudText('inform', 'Your lockpick broke.')
+                exports['mythic_notify']:SendAlert('inform', 'Your lockpick broke.')
             end
             alarmChance = math.random(100)
         if alarmChance <= 55 then
@@ -268,15 +268,15 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         if curstresslevel >= 20 then 
             time = 3500
             time2 = 5000
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         elseif curstresslevel >= 45 then 
             time = 4500
             time2 = 6250
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         elseif curstresslevel >= 75 then 
             time = 5555
             time2 = 7777
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         end]]
         print("pass 2 7")
         isActive = true
@@ -290,7 +290,7 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         exports['progressBars']:startUI(time3, "Modifying Ignition Stage 3")
         Citizen.Wait(time3)
         Citizen.Wait(500)
-        exports['mythic_notify']:DoHudText('success', 'Ignition Wired!')
+        exports['mythic_notify']:SendAlert('success', 'Ignition Wired!')
         print("pass 2 8")
         alarmChance = math.random(100)
         if alarmChance <= 45 then
@@ -316,7 +316,7 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         end
         if chance == 2 then 
             TriggerServerEvent('nfwlock:removeKit')
-            exports['mythic_notify']:DoHudText('inform', 'Your lockpick broke.')
+            exports['mythic_notify']:SendAlert('inform', 'Your lockpick broke.')
         end
         trackedVehicles[plate].canTurnOver = true
         isActive = false
@@ -355,15 +355,15 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         if curstresslevel >= 20 then 
             time = (3500 * 3.5)
             time2 = (5000 * 3.5)
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         elseif curstresslevel >= 45 then 
             time = (4500 * 3.5)
             time2 = (6250 * 3.5)
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         elseif curstresslevel >= 75 then 
             time = (5555 * 3.5)
             time2 = (7777 * 3.5)
-            exports['mythic_notify']:DoHudText('inform', 'Lockpicking will take longer since you are stressed out!')
+            exports['mythic_notify']:SendAlert('inform', 'Lockpicking will take longer since you are stressed out!')
         end]]
         print("pass 2 7")
         isActive = true
@@ -379,7 +379,7 @@ AddEventHandler('disc-hotwire:hotwire', function(useditem)
         exports['progressBars']:startUI(time3, "Modifying Ignition Stage 3")
         Citizen.Wait(time3)
         Citizen.Wait(500)
-        exports['mythic_notify']:DoHudText('success', 'Ignition Wired!')
+        exports['mythic_notify']:SendAlert('success', 'Ignition Wired!')
         ClearPedSecondaryTask(playerPed)
         print("pass 2 8")
         alarmChance = math.random(100)
@@ -418,7 +418,7 @@ function searchvehicle()
     if  trackedVehicles[plate].canTurnOver == false then
 
         if not IsPedInAnyVehicle(GetPlayerPed(-1), false) then
-            exports['mythic_notify']:DoHudText('error', 'You are not in a car?')
+            exports['mythic_notify']:SendAlert('error', 'You are not in a car?')
           return
         end
         exports['progressBars']:startUI(5000,"Searching")
@@ -427,7 +427,7 @@ function searchvehicle()
         local luck = math.random(50,69)
         print(luck)
         if not IsPedInAnyVehicle(GetPlayerPed(-1), false) then
-            exports['mythic_notify']:DoHudText('error', 'You are not in a car?')
+            exports['mythic_notify']:SendAlert('error', 'You are not in a car?')
           return
         end
         if luck >= 68 then
@@ -437,36 +437,36 @@ function searchvehicle()
         elseif luck <= 55 then 
             exports['progressBars']:startUI(2000,"Found and grabing cash...")
             cashreward = math.random(80,250)
-            exports['mythic_notify']:DoHudText('success', 'Found $'..cashreward)
+            exports['mythic_notify']:SendAlert('success', 'Found $'..cashreward)
         elseif luck >= 56 and luck < 68 then
             maths = math.random(1,4)
             if maths == 1 then  
                 item = "bread"
                 count = 3
                 exports['progressBars']:startUI(2000,"Found and grabing bread...")
-                exports['mythic_notify']:DoHudText('success', 'Found '..count.." "..item)
+                exports['mythic_notify']:SendAlert('success', 'Found '..count.." "..item)
                 TriggerServerEvent("disc-hotwire:givereward", source, item, count)
             elseif maths == 2 then 
                 item = "medikit"
                 count = 1
                 exports['progressBars']:startUI(2000,"Found and grabing medikit...")
-                exports['mythic_notify']:DoHudText('success', 'Found '..count.." "..item)
+                exports['mythic_notify']:SendAlert('success', 'Found '..count.." "..item)
                 TriggerServerEvent("disc-hotwire:givereward", source, item, count)
             elseif maths == 3 then 
                 item = "water"
                 count = 3
                 exports['progressBars']:startUI(2000,"Found and grabing water...")
-                exports['mythic_notify']:DoHudText('success', 'Found '..count.." "..item)
+                exports['mythic_notify']:SendAlert('success', 'Found '..count.." "..item)
                 TriggerServerEvent("disc-hotwire:givereward", source, item, count)
             elseif maths == 4 then 
                 item = "lockpick"
                 count = 2
                 exports['progressBars']:startUI(2000,"Found and grabing lockpick...")
-                exports['mythic_notify']:DoHudText('success', 'Found '..count.." "..item)
+                exports['mythic_notify']:SendAlert('success', 'Found '..count.." "..item)
                 TriggerServerEvent("disc-hotwire:givereward", source, item, count)
             end
         else
-          exports['mythic_notify']:DoHudText('error', 'You did not find anything in the car!')  
+          exports['mythic_notify']:SendAlert('error', 'You did not find anything in the car!')  
         end
         hassearched[plate] = true
     end
